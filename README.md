@@ -1,25 +1,61 @@
 # Governed SEO Engine
 
-An open-source, offline-first Python prototype for source-grounded SEO proposals, deterministic validation, and human approval of exact proposal content.
+**Open-source, offline-first SEO governance prototype** by [Consult & Code](https://consultncode.com). MIT licensed.
 
-**Status:** Early prototype. The full source-code release is being prepared. This project does not crawl websites, run autonomous agents, publish to production, or guarantee the truth of source data.
+SEO generation can introduce fabricated product claims. Governed SEO Engine demonstrates a source-grounded workflow: produce metadata from supplied product records, independently validate the exact output against allowed evidence, record SHA-256 fingerprints and human approval, and **never deploy implicitly**.
 
-## Purpose
+## What works today
 
-AI-generated SEO content can introduce unsupported product claims. This project explores a verifiable workflow: provide source data, propose changes, validate against permitted evidence, and bind human approval to the precise validated proposal.
+- Offline HTML audit: title, meta description, canonical URL, H1 count, missing image alt text, JSON-LD syntax.
+- Deterministic title and description proposals derived from local product data.
+- Independent policy validator for bounded source fields, evidence attribution and unauthorized-claim rejection.
+- Product JSON-LD generation, exact validation and diff review.
+- Content digests, approval records tied to the source and proposal, and negative tests.
+- Python standard library implementation; no network access or paid API required.
 
-## Planned public release
+**Limitations:** This is an early prototype. Source inputs are not externally verified; hashes are not signatures; reviewer IDs are not authenticated. No crawler, autonomous AI, hosted service, CMS publishing, or rollback is included. The older CLI approval path is a demonstration and does not provide the stronger binding offered by `governed_seo.governance.authorize`.
 
-- Local HTML SEO audit
-- Deterministic product metadata proposals
-- Source-derived Product JSON-LD
-- Independent governance checks and tamper detection
-- Offline demonstration and automated tests
+## Quick start
 
-## Project stewardship
+Requires Python 3.10+.
 
-Developed by Consult & Code. No client data, credentials, or third-party proprietary enrichment software are part of this project.
+```bash
+git clone https://github.com/sivand81/governed-seo-engine.git
+cd governed-seo-engine
+python -m unittest discover -s tests -v
+python -m examples.demo
+python -m governed_seo.cli audit examples/page.html
+python -m governed_seo.cli propose examples/product.json
+```
+
+The demonstration prints the approved source-bound proposal, Product JSON-LD and a diff, then verifies that a tampered claim is rejected. **Nothing is published to a website.**
+
+## Programmatic example
+
+```python
+from governed_seo.governance import expected_changes, manifest, authorize
+from governed_seo.product_schema import product_jsonld
+
+source = {"sku": "EX-1", "name": "Sample Black Toner", "brand": "ExampleCo"}
+proposal = {"sku": source["sku"], "changes": expected_changes(source)}
+checked = manifest(source, proposal)
+assert checked["validation"]["approved"]
+approval = authorize(source, proposal, checked, reviewer="maintainer")
+print(product_jsonld(source))
+print(approval["deployment"])  # NOT_PERFORMED
+```
+
+## Documentation
+
+- [Architecture and trust boundaries](ARCHITECTURE.md)
+- [Security policy and limitations](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Future roadmap through v2.0](ROADMAP.md)
+
+## Contribute
+
+Issues and pull requests are welcome, particularly reproducible SEO audit cases, policy tests, and safe design reviews. Do not post client data, credentials or proprietary enrichment technology.
 
 ## License
 
-MIT license (license file to be included in source release).
+[MIT](LICENSE). Copyright © 2026 Consult & Code.
